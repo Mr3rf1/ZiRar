@@ -192,6 +192,164 @@ class PasswordCrackingWorker(QThread):
         self.should_stop = True
 
 
+class ThemeManager:
+    """Manages application themes"""
+
+    DARK_THEME = {
+        'background': '#121212',
+        'surface': '#1E1E1E',
+        'surface_variant': '#2A2A2A',
+        'primary_text': '#E0E0E0',
+        'secondary_text': '#B3B3B3',
+        'disabled_text': '#999999',
+        'accent_green': '#50fa7b',
+        'accent_cyan': '#8be9fd',
+        'accent_orange': '#ffb86c',
+        'success': '#50fa7b',
+        'error': '#ff5555',
+        'warning': '#ffb86c',
+        'success_bg': '#1a4d2e',
+        'error_bg': '#4d1a1a',
+        'warning_bg': '#4d3d1a'
+    }
+
+    LIGHT_THEME = {
+        'background': '#F5F5F5',
+        'surface': '#FFFFFF',
+        'surface_variant': '#E0E0E0',
+        'primary_text': '#333333',
+        'secondary_text': '#666666',
+        'disabled_text': '#999999',
+        'accent_green': '#28a745',
+        'accent_cyan': '#17a2b8',
+        'accent_orange': '#fd7e14',
+        'success': '#28a745',
+        'error': '#dc3545',
+        'warning': '#fd7e14',
+        'success_bg': '#d4edda',
+        'error_bg': '#f8d7da',
+        'warning_bg': '#fff3cd'
+    }
+
+    @staticmethod
+    def get_stylesheet(theme_colors):
+        """Generate stylesheet for the given theme colors"""
+        return f"""
+            QMainWindow {{
+                background-color: {theme_colors['background']};
+                color: {theme_colors['primary_text']};
+            }}
+            QWidget {{
+                background-color: {theme_colors['background']};
+                color: {theme_colors['primary_text']};
+            }}
+            QLabel {{
+                color: {theme_colors['primary_text']};
+                background-color: transparent;
+            }}
+            QGroupBox {{
+                font-weight: bold;
+                color: {theme_colors['primary_text']};
+                border: 2px solid {theme_colors['surface_variant']};
+                border-radius: 8px;
+                margin-top: 1ex;
+                padding-top: 15px;
+                background-color: {theme_colors['surface']};
+            }}
+            QGroupBox::title {{
+                subcontrol-origin: margin;
+                left: 15px;
+                padding: 0 8px 0 8px;
+                color: {theme_colors['primary_text']};
+                background-color: {theme_colors['surface']};
+            }}
+            QPushButton {{
+                border: 1px solid {theme_colors['surface_variant']};
+                border-radius: 6px;
+                padding: 8px 16px;
+                background-color: {theme_colors['surface']};
+                color: {theme_colors['primary_text']};
+                min-width: 100px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {theme_colors['surface_variant']};
+                border-color: {theme_colors['secondary_text']};
+            }}
+            QPushButton:pressed {{
+                background-color: {theme_colors['surface_variant']};
+                border-color: {theme_colors['primary_text']};
+            }}
+            QPushButton:disabled {{
+                background-color: {theme_colors['surface']};
+                color: {theme_colors['disabled_text']};
+                border-color: {theme_colors['surface_variant']};
+            }}
+            QProgressBar {{
+                border: 1px solid {theme_colors['surface_variant']};
+                border-radius: 6px;
+                text-align: center;
+                background-color: {theme_colors['surface']};
+                color: {theme_colors['primary_text']};
+                font-weight: 500;
+            }}
+            QProgressBar::chunk {{
+                background-color: {theme_colors['accent_green']};
+                border-radius: 5px;
+            }}
+            QTextEdit {{
+                border: 1px solid {theme_colors['surface_variant']};
+                border-radius: 6px;
+                background-color: {theme_colors['surface']};
+                color: {theme_colors['primary_text']};
+                padding: 8px;
+            }}
+            QCheckBox {{
+                color: {theme_colors['primary_text']};
+                background-color: transparent;
+            }}
+            QCheckBox::indicator {{
+                width: 16px;
+                height: 16px;
+                border: 1px solid {theme_colors['surface_variant']};
+                border-radius: 3px;
+                background-color: {theme_colors['surface']};
+            }}
+            QCheckBox::indicator:checked {{
+                background-color: {theme_colors['accent_cyan']};
+                border-color: {theme_colors['accent_cyan']};
+            }}
+            QMenuBar {{
+                background-color: {theme_colors['surface']};
+                color: {theme_colors['primary_text']};
+                border-bottom: 1px solid {theme_colors['surface_variant']};
+            }}
+            QMenuBar::item {{
+                background-color: transparent;
+                padding: 4px 8px;
+            }}
+            QMenuBar::item:selected {{
+                background-color: {theme_colors['surface_variant']};
+            }}
+            QMenu {{
+                background-color: {theme_colors['surface']};
+                color: {theme_colors['primary_text']};
+                border: 1px solid {theme_colors['surface_variant']};
+            }}
+            QMenu::item {{
+                padding: 6px 12px;
+            }}
+            QMenu::item:selected {{
+                background-color: {theme_colors['surface_variant']};
+            }}
+            QStatusBar {{
+                background-color: {theme_colors['surface']};
+                color: {theme_colors['secondary_text']};
+                border-top: 1px solid {theme_colors['surface_variant']};
+            }}
+        """
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -199,102 +357,113 @@ class MainWindow(QMainWindow):
         self.password_list_path = None
         self.worker_thread = None
         self.is_cracking = False
+        self.current_theme = 'light'  # Default to light theme
 
         self.setWindowTitle("Zirar - Archive Password Cracker")
         self.setMinimumSize(600, 500)
         self.resize(700, 600)
 
-        # Set application style with proper contrast
-        self.setStyleSheet("""
-            QMainWindow {
-                background-color: #f8f9fa;
-                color: #212529;
-            }
-            QWidget {
-                background-color: #f8f9fa;
-                color: #212529;
-            }
-            QLabel {
-                color: #212529;
-                background-color: transparent;
-            }
-            QGroupBox {
-                font-weight: bold;
-                color: #495057;
-                border: 2px solid #dee2e6;
-                border-radius: 8px;
-                margin-top: 1ex;
-                padding-top: 15px;
-                background-color: #ffffff;
-            }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 15px;
-                padding: 0 8px 0 8px;
-                color: #495057;
-                background-color: #ffffff;
-            }
-            QPushButton {
-                border: 1px solid #ced4da;
-                border-radius: 6px;
-                padding: 8px 16px;
-                background-color: #ffffff;
-                color: #495057;
-                min-width: 100px;
-                font-weight: 500;
-            }
-            QPushButton:hover {
-                background-color: #e9ecef;
-                border-color: #adb5bd;
-            }
-            QPushButton:pressed {
-                background-color: #dee2e6;
-                border-color: #6c757d;
-            }
-            QPushButton:disabled {
-                background-color: #f8f9fa;
-                color: #adb5bd;
-                border-color: #e9ecef;
-            }
-            QProgressBar {
-                border: 1px solid #ced4da;
-                border-radius: 6px;
-                text-align: center;
-                background-color: #f8f9fa;
-                color: #495057;
-                font-weight: 500;
-            }
-            QProgressBar::chunk {
-                background-color: #28a745;
-                border-radius: 5px;
-            }
-            QTextEdit {
-                border: 1px solid #ced4da;
-                border-radius: 6px;
-                background-color: #ffffff;
-                color: #495057;
-                padding: 8px;
-            }
-            QCheckBox {
-                color: #495057;
-                background-color: transparent;
-            }
-            QCheckBox::indicator {
-                width: 16px;
-                height: 16px;
-                border: 1px solid #ced4da;
-                border-radius: 3px;
-                background-color: #ffffff;
-            }
-            QCheckBox::indicator:checked {
-                background-color: #007bff;
-                border-color: #007bff;
-            }
-        """)
+        # Apply initial theme
+        self.apply_theme()
 
+        self.setup_menu()
         self.setup_ui()
         self.setup_connections()
-        
+
+    def setup_menu(self):
+        """Set up the menu bar"""
+        menubar = self.menuBar()
+
+        # View menu for theme switching
+        view_menu = menubar.addMenu('View')
+
+        # Theme submenu
+        theme_menu = view_menu.addMenu('Theme')
+
+        # Light theme action
+        light_action = theme_menu.addAction('Light Theme')
+        light_action.setCheckable(True)
+        light_action.setChecked(self.current_theme == 'light')
+        light_action.triggered.connect(lambda: self.switch_theme('light'))
+
+        # Dark theme action
+        dark_action = theme_menu.addAction('Dark Theme')
+        dark_action.setCheckable(True)
+        dark_action.setChecked(self.current_theme == 'dark')
+        dark_action.triggered.connect(lambda: self.switch_theme('dark'))
+
+        # Store actions for later reference
+        self.light_theme_action = light_action
+        self.dark_theme_action = dark_action
+
+    def apply_theme(self):
+        """Apply the current theme"""
+        if self.current_theme == 'dark':
+            theme_colors = ThemeManager.DARK_THEME
+        else:
+            theme_colors = ThemeManager.LIGHT_THEME
+
+        stylesheet = ThemeManager.get_stylesheet(theme_colors)
+        self.setStyleSheet(stylesheet)
+
+        # Update specific elements that need theme-aware colors
+        self.update_themed_elements(theme_colors)
+
+    def switch_theme(self, theme_name):
+        """Switch to the specified theme"""
+        if theme_name == self.current_theme:
+            return
+
+        self.current_theme = theme_name
+
+        # Update menu checkboxes
+        self.light_theme_action.setChecked(theme_name == 'light')
+        self.dark_theme_action.setChecked(theme_name == 'dark')
+
+        # Apply the new theme
+        self.apply_theme()
+
+    def update_themed_elements(self, theme_colors):
+        """Update elements that need specific theme colors"""
+        # Update file selection labels
+        if hasattr(self, 'archive_label'):
+            if self.archive_path:
+                self.archive_label.setStyleSheet(f"color: {theme_colors['primary_text']}; font-style: normal; font-weight: 500;")
+            else:
+                self.archive_label.setStyleSheet(f"color: {theme_colors['secondary_text']}; font-style: italic;")
+
+        if hasattr(self, 'password_label'):
+            if self.password_list_path:
+                self.password_label.setStyleSheet(f"color: {theme_colors['primary_text']}; font-style: normal; font-weight: 500;")
+            else:
+                self.password_label.setStyleSheet(f"color: {theme_colors['secondary_text']}; font-style: italic;")
+
+        # Update action buttons
+        if hasattr(self, 'start_btn'):
+            if self.is_cracking:
+                self.start_btn.setStyleSheet(f"QPushButton {{ background-color: {theme_colors['accent_orange']}; color: white; font-weight: bold; padding: 10px; }}")
+            else:
+                self.start_btn.setStyleSheet(f"QPushButton {{ background-color: {theme_colors['accent_green']}; color: white; font-weight: bold; padding: 10px; }}")
+
+        if hasattr(self, 'stop_btn'):
+            self.stop_btn.setStyleSheet(f"QPushButton {{ background-color: {theme_colors['error']}; color: white; font-weight: bold; padding: 10px; }}")
+
+        # Update current password display
+        if hasattr(self, 'current_password_label'):
+            self.current_password_label.setStyleSheet(f"font-family: monospace; padding: 8px; background-color: {theme_colors['surface']}; border: 1px solid {theme_colors['surface_variant']}; border-radius: 4px; color: {theme_colors['primary_text']};")
+
+        # Update result label if it has content
+        if hasattr(self, 'result_label') and self.result_label.text():
+            current_text = self.result_label.text()
+            if "✔ Password found:" in current_text:
+                self.result_label.setStyleSheet(f"font-weight: bold; padding: 12px; color: {theme_colors['success']}; background-color: {theme_colors['success_bg']}; border: 1px solid {theme_colors['success']}; border-radius: 6px;")
+            elif "❌ No password found" in current_text:
+                self.result_label.setStyleSheet(f"font-weight: bold; padding: 12px; color: {theme_colors['error']}; background-color: {theme_colors['error_bg']}; border: 1px solid {theme_colors['error']}; border-radius: 6px;")
+            elif "⚠ Error:" in current_text:
+                self.result_label.setStyleSheet(f"font-weight: bold; padding: 12px; color: {theme_colors['warning']}; background-color: {theme_colors['warning_bg']}; border: 1px solid {theme_colors['warning']}; border-radius: 6px;")
+            else:
+                self.result_label.setStyleSheet(f"font-weight: bold; padding: 12px; color: {theme_colors['primary_text']};")
+
     def setup_ui(self):
         """Set up the main user interface"""
         central_widget = QWidget()
@@ -321,7 +490,6 @@ class MainWindow(QMainWindow):
         archive_layout = QHBoxLayout()
         archive_layout.addWidget(QLabel("Archive File:"))
         self.archive_label = QLabel("No file selected")
-        self.archive_label.setStyleSheet("color: #6c757d; font-style: italic;")
         archive_layout.addWidget(self.archive_label, 1)
         
         self.browse_archive_btn = QPushButton("Browse...")
@@ -336,7 +504,6 @@ class MainWindow(QMainWindow):
         password_layout = QHBoxLayout()
         password_layout.addWidget(QLabel("Password List:"))
         self.password_label = QLabel("No file selected")
-        self.password_label.setStyleSheet("color: #6c757d; font-style: italic;")
         password_layout.addWidget(self.password_label, 1)
         
         self.browse_password_btn = QPushButton("Browse...")
@@ -356,11 +523,9 @@ class MainWindow(QMainWindow):
         button_layout = QHBoxLayout()
         self.start_btn = QPushButton("Start Password Testing")
         self.start_btn.setEnabled(False)
-        self.start_btn.setStyleSheet("QPushButton { background-color: #28a745; color: white; font-weight: bold; padding: 10px; }")
 
         self.stop_btn = QPushButton("Stop")
         self.stop_btn.setEnabled(False)
-        self.stop_btn.setStyleSheet("QPushButton { background-color: #dc3545; color: white; font-weight: bold; padding: 10px; }")
         
         button_layout.addWidget(self.start_btn)
         button_layout.addWidget(self.stop_btn)
@@ -389,12 +554,10 @@ class MainWindow(QMainWindow):
         
         # Current password display
         self.current_password_label = QLabel("Current attempt: (not started)")
-        self.current_password_label.setStyleSheet("font-family: monospace; padding: 8px; background-color: #ffffff; border: 1px solid #ced4da; border-radius: 4px; color: #495057;")
         feedback_layout.addWidget(self.current_password_label)
 
         # Result display
         self.result_label = QLabel("")
-        self.result_label.setStyleSheet("font-weight: bold; padding: 12px; color: #495057;")
         self.result_label.setAlignment(Qt.AlignCenter)
         feedback_layout.addWidget(self.result_label)
         
@@ -463,18 +626,20 @@ class MainWindow(QMainWindow):
             self.archive_path = file_path
             filename = Path(file_path).name
             self.archive_label.setText(filename)
-            self.archive_label.setStyleSheet("color: #212529; font-style: normal; font-weight: 500;")
             self.clear_archive_btn.setEnabled(True)
             self.check_ready_state()
             self.statusBar().showMessage(f"Archive selected: {filename}")
+            # Update theme-aware styling
+            self.update_themed_elements(self.get_current_theme_colors())
             
     def clear_archive_file(self):
         """Clear selected archive file"""
         self.archive_path = None
         self.archive_label.setText("No file selected")
-        self.archive_label.setStyleSheet("color: #6c757d; font-style: italic;")
         self.clear_archive_btn.setEnabled(False)
         self.check_ready_state()
+        # Update theme-aware styling
+        self.update_themed_elements(self.get_current_theme_colors())
         
     def browse_password_file(self):
         """Open file dialog to select password list file"""
@@ -504,10 +669,11 @@ class MainWindow(QMainWindow):
                 self.password_list_path = file_path
                 filename = Path(file_path).name
                 self.password_label.setText(f"{filename} ({password_count:,} passwords)")
-                self.password_label.setStyleSheet("color: #212529; font-style: normal; font-weight: 500;")
                 self.clear_password_btn.setEnabled(True)
                 self.check_ready_state()
                 self.statusBar().showMessage(f"Password list selected: {password_count:,} passwords loaded")
+                # Update theme-aware styling
+                self.update_themed_elements(self.get_current_theme_colors())
 
             except Exception as e:
                 QMessageBox.critical(self, "File Error", f"Could not read password file:\n{str(e)}")
@@ -516,10 +682,18 @@ class MainWindow(QMainWindow):
         """Clear selected password list file"""
         self.password_list_path = None
         self.password_label.setText("No file selected")
-        self.password_label.setStyleSheet("color: #6c757d; font-style: italic;")
         self.clear_password_btn.setEnabled(False)
         self.check_ready_state()
-        
+        # Update theme-aware styling
+        self.update_themed_elements(self.get_current_theme_colors())
+
+    def get_current_theme_colors(self):
+        """Get the current theme colors"""
+        if self.current_theme == 'dark':
+            return ThemeManager.DARK_THEME
+        else:
+            return ThemeManager.LIGHT_THEME
+
     def check_ready_state(self):
         """Check if both files are selected and enable/disable start button"""
         self.update_ui_state()
@@ -550,7 +724,8 @@ class MainWindow(QMainWindow):
 
         # Visual feedback for start
         self.start_btn.setText("Testing...")
-        self.start_btn.setStyleSheet("QPushButton { background-color: #fd7e14; color: white; font-weight: bold; padding: 10px; }")
+        # Update theme-aware styling
+        self.update_themed_elements(self.get_current_theme_colors())
 
         # Reset UI elements
         self.progress_bar.setVisible(True)
@@ -558,7 +733,8 @@ class MainWindow(QMainWindow):
         self.progress_label.setText("Starting...")
         self.current_password_label.setText("Current attempt: (starting)")
         self.result_label.setText("")
-        self.result_label.setStyleSheet("font-weight: bold; padding: 12px; color: #495057;")
+        # Update theme-aware styling
+        self.update_themed_elements(self.get_current_theme_colors())
 
         # Create and start worker thread
         self.worker_thread = PasswordCrackingWorker(self.archive_path, self.password_list_path)
@@ -598,21 +774,24 @@ class MainWindow(QMainWindow):
     def password_found(self, password):
         """Handle successful password discovery"""
         self.result_label.setText(f"✔ Password found: {password}")
-        self.result_label.setStyleSheet("font-weight: bold; padding: 12px; color: #155724; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 6px;")
         self.statusBar().showMessage("Password found successfully!")
+        # Update theme-aware styling
+        self.update_themed_elements(self.get_current_theme_colors())
 
     def password_not_found(self):
         """Handle case where no password worked"""
         self.result_label.setText("❌ No password found")
-        self.result_label.setStyleSheet("font-weight: bold; padding: 12px; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 6px;")
         self.statusBar().showMessage("Password testing completed - no password found")
+        # Update theme-aware styling
+        self.update_themed_elements(self.get_current_theme_colors())
 
     def handle_error(self, error_message):
         """Handle errors from worker thread"""
         self.result_label.setText(f"⚠ Error: {error_message}")
-        self.result_label.setStyleSheet("font-weight: bold; padding: 12px; color: #856404; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px;")
         self.statusBar().showMessage("Error occurred during password testing")
         QMessageBox.critical(self, "Error", error_message)
+        # Update theme-aware styling
+        self.update_themed_elements(self.get_current_theme_colors())
 
     def cracking_finished(self):
         """Reset UI state when cracking is finished"""
@@ -621,7 +800,8 @@ class MainWindow(QMainWindow):
 
         # Reset start button appearance
         self.start_btn.setText("Start Password Testing")
-        self.start_btn.setStyleSheet("QPushButton { background-color: #28a745; color: white; font-weight: bold; padding: 10px; }")
+        # Update theme-aware styling
+        self.update_themed_elements(self.get_current_theme_colors())
 
         # Clean up worker thread
         if self.worker_thread:

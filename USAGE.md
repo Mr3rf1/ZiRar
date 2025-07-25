@@ -28,6 +28,7 @@ python main.py
 
 ### 2. Configure Options
 - **Show current attempt:** Check this box if you want to see the actual passwords being tested (otherwise they're masked with asterisks)
+- **Theme:** Use the View menu to switch between Light and Dark themes for comfortable viewing
 
 ### 3. Start Testing
 - Click "Start Password Testing" to begin
@@ -36,8 +37,30 @@ python main.py
 
 ### 4. View Results
 - **Success:** Shows "✔ Password found: [password]" in green
-- **Failure:** Shows "❌ No password found" in red  
+- **Failure:** Shows "❌ No password found" in red
 - **Error:** Shows "⚠ Error: [message]" in orange
+
+## Theme Support
+
+The application supports both Light and Dark themes for comfortable viewing:
+
+### Light Theme (Default)
+- **Background:** Soft light gray (#F5F5F5) for reduced glare
+- **Text:** Dark colors (#333333) for high contrast and readability
+- **Accents:** Standard green, blue, and orange colors
+
+### Dark Theme
+- **Background:** Deep dark (#121212) for low-light environments
+- **Surface:** Dark gray panels (#1E1E1E–#2A2A2A)
+- **Text:** Light colors (#E0E0E0) optimized for dark backgrounds
+- **Accents:** Vibrant colors (#50fa7b, #8be9fd, #ffb86c) for better visibility
+
+### Switching Themes
+1. Go to **View** menu in the menu bar
+2. Select **Theme** submenu
+3. Choose **Light Theme** or **Dark Theme**
+
+The theme will switch immediately and all UI elements will update accordingly.
 
 ## Password List Format
 
