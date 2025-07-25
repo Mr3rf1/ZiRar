@@ -360,8 +360,8 @@ class MainWindow(QMainWindow):
         self.current_theme = 'light'  # Default to light theme
 
         self.setWindowTitle("Zirar - Archive Password Cracker")
-        self.setMinimumSize(600, 500)
-        self.resize(700, 600)
+        self.setMinimumSize(650, 700)  # Increased minimum height to ensure all content is visible
+        self.resize(650, 750)
 
         self.setup_menu()
         self.setup_ui()
