@@ -202,11 +202,11 @@ class ThemeManager:
         'primary_text': '#E0E0E0',
         'secondary_text': '#B3B3B3',
         'disabled_text': '#999999',
-        'accent_green': '#50fa7b',
+        'accent_green': "#24923f",
         'accent_cyan': '#8be9fd',
         'accent_orange': '#ffb86c',
         'success': '#50fa7b',
-        'error': '#ff5555',
+        'error': "#9B2F2F",
         'warning': '#ffb86c',
         'success_bg': '#1a4d2e',
         'error_bg': '#4d1a1a',
@@ -363,12 +363,12 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(600, 500)
         self.resize(700, 600)
 
-        # Apply initial theme
-        self.apply_theme()
-
         self.setup_menu()
         self.setup_ui()
         self.setup_connections()
+
+        # Apply initial theme after UI is set up
+        self.apply_theme()
 
     def setup_menu(self):
         """Set up the menu bar"""
@@ -438,30 +438,73 @@ class MainWindow(QMainWindow):
             else:
                 self.password_label.setStyleSheet(f"color: {theme_colors['secondary_text']}; font-style: italic;")
 
-        # Update action buttons
+        # Update action buttons with higher specificity
         if hasattr(self, 'start_btn'):
             if self.is_cracking:
-                self.start_btn.setStyleSheet(f"QPushButton {{ background-color: {theme_colors['accent_orange']}; color: white; font-weight: bold; padding: 10px; }}")
+                self.start_btn.setStyleSheet(f"""
+                    QPushButton {{
+                        background-color: {theme_colors['accent_orange']} !important;
+                        color: white !important;
+                        font-weight: bold;
+                        padding: 10px;
+                        border: 1px solid {theme_colors['accent_orange']};
+                        border-radius: 6px;
+                        min-width: 100px;
+                    }}
+                    QPushButton:hover {{
+                        background-color: {theme_colors['accent_orange']};
+                        opacity: 0.8;
+                    }}
+                """)
             else:
-                self.start_btn.setStyleSheet(f"QPushButton {{ background-color: {theme_colors['accent_green']}; color: white; font-weight: bold; padding: 10px; }}")
+                self.start_btn.setStyleSheet(f"""
+                    QPushButton {{
+                        background-color: {theme_colors['accent_green']} !important;
+                        color: white !important;
+                        font-weight: bold;
+                        padding: 10px;
+                        border: 1px solid {theme_colors['accent_green']};
+                        border-radius: 6px;
+                        min-width: 100px;
+                    }}
+                    QPushButton:hover {{
+                        background-color: {theme_colors['accent_green']};
+                        opacity: 0.8;
+                    }}
+                """)
 
         if hasattr(self, 'stop_btn'):
-            self.stop_btn.setStyleSheet(f"QPushButton {{ background-color: {theme_colors['error']}; color: white; font-weight: bold; padding: 10px; }}")
+            self.stop_btn.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {theme_colors['error']} !important;
+                    color: white !important;
+                    font-weight: bold;
+                    padding: 10px;
+                    border: 1px solid {theme_colors['error']};
+                    border-radius: 6px;
+                    min-width: 100px;
+                }}
+                QPushButton:hover {{
+                    background-color: {theme_colors['error']};
+                    opacity: 0.8;
+                }}
+            """)
 
         # Update current password display
         if hasattr(self, 'current_password_label'):
             self.current_password_label.setStyleSheet(f"font-family: monospace; padding: 8px; background-color: {theme_colors['surface']}; border: 1px solid {theme_colors['surface_variant']}; border-radius: 4px; color: {theme_colors['primary_text']};")
 
-        # Update result label if it has content
-        if hasattr(self, 'result_label') and self.result_label.text():
+        # Update result label
+        if hasattr(self, 'result_label'):
             current_text = self.result_label.text()
-            if "✔ Password found:" in current_text:
+            if current_text and "✔ Password found:" in current_text:
                 self.result_label.setStyleSheet(f"font-weight: bold; padding: 12px; color: {theme_colors['success']}; background-color: {theme_colors['success_bg']}; border: 1px solid {theme_colors['success']}; border-radius: 6px;")
-            elif "❌ No password found" in current_text:
+            elif current_text and "❌ No password found" in current_text:
                 self.result_label.setStyleSheet(f"font-weight: bold; padding: 12px; color: {theme_colors['error']}; background-color: {theme_colors['error_bg']}; border: 1px solid {theme_colors['error']}; border-radius: 6px;")
-            elif "⚠ Error:" in current_text:
+            elif current_text and "⚠ Error:" in current_text:
                 self.result_label.setStyleSheet(f"font-weight: bold; padding: 12px; color: {theme_colors['warning']}; background-color: {theme_colors['warning_bg']}; border: 1px solid {theme_colors['warning']}; border-radius: 6px;")
             else:
+                # Default styling for empty or other content
                 self.result_label.setStyleSheet(f"font-weight: bold; padding: 12px; color: {theme_colors['primary_text']};")
 
     def setup_ui(self):
