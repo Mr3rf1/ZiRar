@@ -8,6 +8,9 @@ import sys
 import os
 import zipfile
 import rarfile
+import threading
+import queue
+import multiprocessing
 from pathlib import Path
 
 # Configure rarfile to look for UnRAR in common locations
@@ -42,7 +45,7 @@ RAR_AVAILABLE = setup_rarfile()
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget,
     QLabel, QPushButton, QProgressBar, QFileDialog, QTextEdit,
-    QCheckBox, QGroupBox, QMessageBox, QFrame
+    QCheckBox, QGroupBox, QMessageBox, QFrame, QSpinBox
 )
 from PySide6.QtCore import Qt, QThread, Signal, QTimer
 from PySide6.QtGui import QFont, QIcon
@@ -52,6 +55,48 @@ try:
     PYZIPPER_AVAILABLE = True
 except ImportError:
     PYZIPPER_AVAILABLE = False
+
+
+class ResourceDetector:
+    """Detects system resources and recommends optimal worker count"""
+
+    @staticmethod
+    def get_cpu_count():
+        """Get the number of CPU cores"""
+        try:
+            return multiprocessing.cpu_count()
+        except:
+            return 4  # Fallback
+
+    @staticmethod
+    def get_recommended_workers():
+        """Get recommended number of worker threads"""
+        cpu_count = ResourceDetector.get_cpu_count()
+
+        # Conservative approach: use 50-75% of CPU cores
+        # Password testing is I/O intensive (file reading) so we can use more threads
+        if cpu_count <= 2:
+            return 2  # Minimum for responsiveness
+        elif cpu_count <= 4:
+            return cpu_count  # Use all cores for small systems
+        elif cpu_count <= 8:
+            return max(4, cpu_count - 1)  # Leave one core free
+        else:
+            return max(6, cpu_count // 2)  # Use half for high-core systems
+
+    @staticmethod
+    def get_worker_recommendations():
+        """Get detailed worker count recommendations"""
+        cpu_count = ResourceDetector.get_cpu_count()
+        recommended = ResourceDetector.get_recommended_workers()
+
+        return {
+            'cpu_cores': cpu_count,
+            'recommended': recommended,
+            'conservative': max(1, recommended // 2),
+            'aggressive': min(cpu_count, recommended * 2),
+            'maximum': cpu_count
+        }
 
 
 class PasswordEnhancer:
@@ -139,8 +184,106 @@ class PasswordEnhancer:
         return enhanced_passwords
 
 
+class PasswordTestWorker(QThread):
+    """Individual worker thread for testing passwords"""
+
+    password_found = Signal(str)  # successful password
+    error_occurred = Signal(str)  # error message
+
+    def __init__(self, archive_path, password_queue, result_queue):
+        super().__init__()
+        self.archive_path = archive_path
+        self.password_queue = password_queue
+        self.result_queue = result_queue
+        self.should_stop = False
+
+    def run(self):
+        """Main worker execution"""
+        archive_ext = Path(self.archive_path).suffix.lower()
+
+        while not self.should_stop:
+            try:
+                # Get password from queue (timeout to check should_stop)
+                try:
+                    password = self.password_queue.get(timeout=0.1)
+                except queue.Empty:
+                    continue
+
+                # Test the password
+                success = False
+                try:
+                    if archive_ext == '.zip':
+                        success = self.test_zip_password(password)
+                    elif archive_ext == '.rar':
+                        success = self.test_rar_password(password)
+                except Exception:
+                    # Continue with next password on error
+                    pass
+
+                # Report result
+                self.result_queue.put((password, success))
+                self.password_queue.task_done()
+
+                if success:
+                    break
+
+            except Exception as e:
+                self.error_occurred.emit(f"Worker error: {str(e)}")
+                break
+
+    def test_zip_password(self, password):
+        """Test password against ZIP file"""
+        try:
+            if PYZIPPER_AVAILABLE:
+                try:
+                    with pyzipper.AESZipFile(self.archive_path, 'r') as zip_file:
+                        zip_file.setpassword(password.encode('utf-8'))
+                        zip_file.testzip()
+                        return True
+                except (pyzipper.BadZipFile, pyzipper.LargeZipFile, RuntimeError):
+                    return False
+            else:
+                with zipfile.ZipFile(self.archive_path, 'r') as zip_file:
+                    zip_file.setpassword(password.encode('utf-8'))
+                    result = zip_file.testzip()
+                    return result is None
+        except (RuntimeError, zipfile.BadZipFile, zipfile.LargeZipFile, UnicodeEncodeError):
+            return False
+        except Exception:
+            return False
+
+    def test_rar_password(self, password):
+        """Test password against RAR file"""
+        try:
+            with rarfile.RarFile(self.archive_path, 'r') as rar_file:
+                try:
+                    rar_file.setpassword(password)
+                except:
+                    rar_file.setpassword(password.encode('utf-8'))
+
+                names = rar_file.namelist()
+                if not names:
+                    return False
+
+                try:
+                    with rar_file.open(names[0]) as f:
+                        f.read(1)
+                    return True
+                except:
+                    return False
+
+        except (rarfile.RarWrongPassword, rarfile.BadRarFile):
+            return False
+        except Exception:
+            return False
+
+    def stop(self):
+        """Signal the worker to stop"""
+        self.should_stop = True
+
+
 class PasswordCrackingWorker(QThread):
-    """Worker thread for password cracking to keep UI responsive"""
+    """Main coordinator thread for multi-threaded password cracking"""
 
     # Signals for communication with main thread
     progress_updated = Signal(int, int, str)  # current, total, current_password
@@ -148,15 +291,19 @@ class PasswordCrackingWorker(QThread):
     finished_unsuccessfully = Signal()  # no password found
     error_occurred = Signal(str)  # error message
 
-    def __init__(self, archive_path, password_list_path, enhance_passwords=True):
+    def __init__(self, archive_path, password_list_path, enhance_passwords=True, worker_count=4):
         super().__init__()
         self.archive_path = archive_path
         self.password_list_path = password_list_path
         self.enhance_passwords = enhance_passwords
+        self.worker_count = worker_count
         self.should_stop = False
+        self.workers = []
+        self.password_queue = queue.Queue()
+        self.result_queue = queue.Queue()
 
     def run(self):
-        """Main worker thread execution"""
+        """Main coordinator thread execution"""
         try:
             # Load passwords
             passwords = self.load_passwords()
@@ -165,34 +312,68 @@ class PasswordCrackingWorker(QThread):
                 return
 
             total_passwords = len(passwords)
-            archive_ext = Path(self.archive_path).suffix.lower()
 
-            # Test each password
-            for i, password in enumerate(passwords):
-                if self.should_stop:
-                    return
+            # Fill password queue
+            for password in passwords:
+                self.password_queue.put(password)
 
-                self.progress_updated.emit(i + 1, total_passwords, password)
+            # Start worker threads
+            for i in range(self.worker_count):
+                worker = PasswordTestWorker(self.archive_path, self.password_queue, self.result_queue)
+                worker.error_occurred.connect(self.error_occurred.emit)
+                self.workers.append(worker)
+                worker.start()
 
+            # Monitor progress and results
+            tested_count = 0
+            current_password = ""
+
+            while tested_count < total_passwords and not self.should_stop:
                 try:
-                    if archive_ext == '.zip':
-                        if self.test_zip_password(password):
-                            self.password_found.emit(password)
-                            return
-                    elif archive_ext == '.rar':
-                        if self.test_rar_password(password):
-                            self.password_found.emit(password)
-                            return
-                except Exception as e:
-                    # Continue with next password on specific errors
-                    # For debugging, you might want to emit this error
+                    # Check for results (timeout to update progress)
+                    password, success = self.result_queue.get(timeout=0.1)
+                    tested_count += 1
+                    current_password = password
+
+                    # Update progress
+                    self.progress_updated.emit(tested_count, total_passwords, current_password)
+
+                    if success:
+                        # Password found! Stop all workers
+                        self.stop_workers()
+                        self.password_found.emit(password)
+                        return
+
+                except queue.Empty:
+                    # Update progress even if no new results
+                    if current_password:
+                        self.progress_updated.emit(tested_count, total_passwords, current_password)
                     continue
 
+            # Stop all workers
+            self.stop_workers()
+
             # If we get here, no password worked
-            self.finished_unsuccessfully.emit()
+            if not self.should_stop:
+                self.finished_unsuccessfully.emit()
 
         except Exception as e:
+            self.stop_workers()
             self.error_occurred.emit(f"Unexpected error: {str(e)}")
+
+    def stop_workers(self):
+        """Stop all worker threads"""
+        for worker in self.workers:
+            worker.stop()
+
+        # Wait for workers to finish
+        for worker in self.workers:
+            worker.wait(1000)  # Wait up to 1 second
+            if worker.isRunning():
+                worker.terminate()
+                worker.wait()
+
+        self.workers.clear()
 
     def load_passwords(self):
         """Load passwords from the password list file"""
@@ -214,78 +395,10 @@ class PasswordCrackingWorker(QThread):
             self.error_occurred.emit(f"Could not load password list: {str(e)}")
             return []
 
-    def test_zip_password(self, password):
-        """Test password against ZIP file"""
-        try:
-            # Try pyzipper first (better for encrypted ZIPs)
-            if PYZIPPER_AVAILABLE:
-                try:
-                    with pyzipper.AESZipFile(self.archive_path, 'r') as zip_file:
-                        zip_file.setpassword(password.encode('utf-8'))
-                        # Test by trying to read file info
-                        zip_file.testzip()
-                        return True
-                except (pyzipper.BadZipFile, pyzipper.LargeZipFile, RuntimeError):
-                    return False
-            else:
-                # Fallback to standard zipfile
-                with zipfile.ZipFile(self.archive_path, 'r') as zip_file:
-                    zip_file.setpassword(password.encode('utf-8'))
-                    # Test by trying to read the zip
-                    result = zip_file.testzip()
-                    return result is None  # testzip returns None if all files are OK
-        except (RuntimeError, zipfile.BadZipFile, zipfile.LargeZipFile):
-            # Wrong password or corrupted file
-            return False
-        except UnicodeEncodeError:
-            # Password contains characters that can't be encoded
-            return False
-        except Exception:
-            # Other errors, continue trying
-            return False
-
-    def test_rar_password(self, password):
-        """Test password against RAR file"""
-        try:
-            with rarfile.RarFile(self.archive_path, 'r') as rar_file:
-                # Set password - try both string and bytes
-                try:
-                    rar_file.setpassword(password)
-                except:
-                    # Some versions might need bytes
-                    rar_file.setpassword(password.encode('utf-8'))
-
-                # Try to get file info first (faster than reading)
-                names = rar_file.namelist()
-                if not names:
-                    return False
-
-                # Try to get info about the first file
-                info = rar_file.getinfo(names[0])
-
-                # If we can get info without error, try reading a small portion
-                try:
-                    # Try to read just the first few bytes to verify password
-                    with rar_file.open(names[0]) as f:
-                        f.read(1)  # Read just 1 byte to test
-                    return True
-                except:
-                    return False
-
-        except rarfile.RarWrongPassword:
-            # Specifically wrong password
-            return False
-        except rarfile.BadRarFile:
-            # Corrupted RAR file
-            return False
-        except Exception as e:
-            # Log other errors for debugging but continue
-            # In production, you might want to log this
-            return False
-
     def stop(self):
-        """Signal the worker to stop"""
+        """Signal the coordinator and all workers to stop"""
         self.should_stop = True
+        self.stop_workers()
 
 
 class ThemeManager:
@@ -726,6 +839,51 @@ class MainWindow(QMainWindow):
             "• Capitalize first letter variations"
         )
         feedback_layout.addWidget(self.enhance_passwords_cb)
+
+        # Worker count configuration
+        worker_layout = QHBoxLayout()
+        worker_layout.addWidget(QLabel("Worker Threads:"))
+
+        # Get system recommendations
+        recommendations = ResourceDetector.get_worker_recommendations()
+
+        self.worker_count_spinbox = QSpinBox()
+        self.worker_count_spinbox.setMinimum(1)
+        self.worker_count_spinbox.setMaximum(recommendations['maximum'])
+        self.worker_count_spinbox.setValue(recommendations['recommended'])
+        self.worker_count_spinbox.setToolTip(
+            f"Number of parallel worker threads for password testing.\n\n"
+            f"System Info:\n"
+            f"• CPU Cores: {recommendations['cpu_cores']}\n"
+            f"• Recommended: {recommendations['recommended']} (optimal)\n"
+            f"• Conservative: {recommendations['conservative']} (lighter load)\n"
+            f"• Aggressive: {recommendations['aggressive']} (maximum speed)\n\n"
+            f"More workers = faster testing but higher CPU usage."
+        )
+        worker_layout.addWidget(self.worker_count_spinbox)
+
+        # Auto-set buttons
+        conservative_btn = QPushButton("Conservative")
+        conservative_btn.setMaximumWidth(100)
+        conservative_btn.clicked.connect(lambda: self.worker_count_spinbox.setValue(recommendations['conservative']))
+        conservative_btn.setToolTip(f"Set to {recommendations['conservative']} workers (lighter CPU load)")
+
+        recommended_btn = QPushButton("Recommended")
+        recommended_btn.setMaximumWidth(100)
+        recommended_btn.clicked.connect(lambda: self.worker_count_spinbox.setValue(recommendations['recommended']))
+        recommended_btn.setToolTip(f"Set to {recommendations['recommended']} workers (optimal balance)")
+
+        aggressive_btn = QPushButton("Aggressive")
+        aggressive_btn.setMaximumWidth(100)
+        aggressive_btn.clicked.connect(lambda: self.worker_count_spinbox.setValue(recommendations['aggressive']))
+        aggressive_btn.setToolTip(f"Set to {recommendations['aggressive']} workers (maximum speed)")
+
+        worker_layout.addWidget(conservative_btn)
+        worker_layout.addWidget(recommended_btn)
+        worker_layout.addWidget(aggressive_btn)
+        worker_layout.addStretch()
+
+        feedback_layout.addLayout(worker_layout)
         
         # Current password display
         self.current_password_label = QLabel("Current attempt: (not started)")
@@ -924,7 +1082,13 @@ class MainWindow(QMainWindow):
 
         # Create and start worker thread
         enhance_passwords = self.enhance_passwords_cb.isChecked()
-        self.worker_thread = PasswordCrackingWorker(self.archive_path, self.password_list_path, enhance_passwords)
+        worker_count = self.worker_count_spinbox.value()
+        self.worker_thread = PasswordCrackingWorker(
+            self.archive_path,
+            self.password_list_path,
+            enhance_passwords,
+            worker_count
+        )
         self.worker_thread.progress_updated.connect(self.update_progress)
         self.worker_thread.password_found.connect(self.password_found)
         self.worker_thread.finished_unsuccessfully.connect(self.password_not_found)
