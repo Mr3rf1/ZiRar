@@ -572,6 +572,18 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(650, 700)  # Increased minimum height to ensure all content is visible
         self.resize(650, 750)
 
+        # Set application icon
+        try:
+            # Try ICO first (better for Windows), then PNG as fallback
+            for icon_file in ["zirar.ico", "zirar.png"]:
+                icon_path = Path(icon_file)
+                if icon_path.exists():
+                    self.setWindowIcon(QIcon(str(icon_path)))
+                    break
+        except Exception:
+            # Icon loading failed, continue without icon
+            pass
+
         self.setup_menu()
         self.setup_ui()
         self.setup_connections()
@@ -1285,6 +1297,18 @@ def main():
     app = QApplication(sys.argv)
     app.setApplicationName("ZiRar")
     app.setApplicationVersion("1.0")
+
+    # Set application icon
+    try:
+        # Try ICO first (better for Windows), then PNG as fallback
+        for icon_file in ["zirar.ico", "zirar.png"]:
+            icon_path = Path(icon_file)
+            if icon_path.exists():
+                app.setWindowIcon(QIcon(str(icon_path)))
+                break
+    except Exception:
+        # Icon loading failed, continue without icon
+        pass
     
     window = MainWindow()
     window.show()
