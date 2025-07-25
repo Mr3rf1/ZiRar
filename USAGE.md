@@ -106,12 +106,36 @@ Generated variations:
 - **Smart**: Avoids password explosion by limiting variations
 - **Transparent**: Shows original vs enhanced count in the UI
 
+### Password Testing Order
+
+The application uses an intelligent testing order to maximize efficiency:
+
+1. **Original passwords first** (positions 1-N)
+2. **Enhanced variations second** (positions N+1 onwards)
+3. **No duplicates** - variations matching originals are excluded
+
+**Example:**
+```
+Original list: admin, test, hello
+Testing order:
+1. admin          ← Original
+2. test           ← Original
+3. hello          ← Original
+4. @dmin          ← Enhanced
+5. 4dmin          ← Enhanced
+6. t3st           ← Enhanced
+7. te$t           ← Enhanced
+8. h3llo          ← Enhanced
+9. hell0          ← Enhanced
+... (more variations)
+```
+
 ### Usage Tips
 
 - **Enable by default** for better coverage
 - **Disable** if you have a very large password list (>10,000 passwords)
 - **Monitor** the enhanced count in the password list label
-- **Original passwords** are always tested first
+- **Original passwords** are always tested first for optimal efficiency
 
 ## Password List Format
 

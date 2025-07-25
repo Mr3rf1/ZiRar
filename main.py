@@ -117,28 +117,26 @@ class PasswordEnhancer:
 
     @staticmethod
     def enhance_password_list(passwords, enhancement_factor=3):
-        """Enhance a list of passwords with variations"""
-        enhanced_passwords = []
+        """Enhance a list of passwords with variations added to the end"""
+        # Start with all original passwords
+        enhanced_passwords = list(passwords)
 
+        # Collect all variations
+        all_variations = []
         for password in passwords:
-            # Add original password
-            enhanced_passwords.append(password)
-
-            # Add variations
             variations = PasswordEnhancer.generate_variations(password, enhancement_factor)
             for variation in variations:
                 if variation != password:  # Don't duplicate original
-                    enhanced_passwords.append(variation)
+                    all_variations.append(variation)
 
-        # Remove duplicates while preserving order
-        seen = set()
-        unique_passwords = []
-        for pwd in enhanced_passwords:
-            if pwd not in seen:
-                seen.add(pwd)
-                unique_passwords.append(pwd)
+        # Add variations to the end, removing duplicates
+        seen = set(enhanced_passwords)  # Track originals
+        for variation in all_variations:
+            if variation not in seen:
+                seen.add(variation)
+                enhanced_passwords.append(variation)
 
-        return unique_passwords
+        return enhanced_passwords
 
 
 class PasswordCrackingWorker(QThread):
