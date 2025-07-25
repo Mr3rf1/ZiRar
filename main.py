@@ -370,6 +370,27 @@ class MainWindow(QMainWindow):
         # Apply initial theme after UI is set up
         self.apply_theme()
 
+        # Center the window on the screen
+        self.center_window()
+
+    def center_window(self):
+        """Center the window on the screen"""
+        # Get the screen geometry
+        screen = QApplication.primaryScreen()
+        screen_geometry = screen.availableGeometry()
+
+        # Get the window geometry
+        window_geometry = self.frameGeometry()
+
+        # Calculate the center point
+        center_point = screen_geometry.center()
+
+        # Move the window's center to the screen's center
+        window_geometry.moveCenter(center_point)
+
+        # Move the window to the calculated position
+        self.move(window_geometry.topLeft())
+
     def setup_menu(self):
         """Set up the menu bar"""
         menubar = self.menuBar()
