@@ -58,7 +58,7 @@ This project exists to:
 
 ```bash
 # Fork and clone the repository
-git clone https://github.com/yourusername/zirar.git
+git clone https://github.com/Mr3rf1/zirar.git
 cd zirar
 
 # Create a virtual environment

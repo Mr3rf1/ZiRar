@@ -26,7 +26,7 @@ We follow industry-standard responsible disclosure practices:
 ### How to Report
 
 **🔒 For Security Vulnerabilities:**
-- **Email**: [Create a private GitHub security advisory](https://github.com/yourusername/zirar/security/advisories/new)
+- **Email**: [Create a private GitHub security advisory](https://github.com/Mr3rf1/zirar/security/advisories/new)
 - **Subject**: "Security Vulnerability in Zirar: [Brief Description]"
 - **Encryption**: Use our PGP key for sensitive communications (if available)
 

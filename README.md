@@ -81,7 +81,7 @@ rarfile>=4.0        # RAR archive support
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/zirar.git
+git clone https://github.com/Mr3rf1/zirar.git
 cd zirar
 ```
 
@@ -216,8 +216,8 @@ See [LICENSE](LICENSE) file for complete terms.
 
 ## 📞 Support & Contact
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/zirar/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/zirar/discussions)
+- **Issues**: [GitHub Issues](https://github.com/Mr3rf1/zirar/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Mr3rf1/zirar/discussions)
 - **Security**: Report security issues responsibly
 
 ## 🔗 Related Resources
