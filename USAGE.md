@@ -28,6 +28,7 @@ python main.py
 
 ### 2. Configure Options
 - **Show current attempt:** Check this box if you want to see the actual passwords being tested (otherwise they're masked with asterisks)
+- **Enhance password list:** Generate password variations using common character substitutions (enabled by default)
 - **Theme:** Use the View menu to switch between Light and Dark themes for comfortable viewing
 
 ### 3. Start Testing
@@ -61,6 +62,56 @@ The application supports both Light and Dark themes for comfortable viewing:
 3. Choose **Light Theme** or **Dark Theme**
 
 The theme will switch immediately and all UI elements will update accordingly.
+
+## Password Enhancement
+
+The application includes an intelligent password enhancement feature that automatically generates variations of your password list using common character substitutions and patterns.
+
+### How It Works
+
+When **"Enhance password list"** is checked (default), the application will:
+
+1. **Read your original password list**
+2. **Generate variations** using common substitutions:
+   - `a/A` → `@`, `4`
+   - `e/E` → `3`
+   - `i/I` → `1`, `!`
+   - `o/O` → `0`
+   - `s/S` → `$`, `5`
+   - `t/T` → `7`
+   - `l/L` → `1`
+   - `g/G` → `9`
+   - `b/B` → `6`
+
+3. **Add common endings**: `123`, `!`, `1`, `12`, `2023`, `2024`, `01`
+4. **Create capitalization variants**: First letter capitalized
+5. **Remove duplicates** while preserving order
+
+### Example Enhancement
+
+Original password: `password`
+
+Generated variations:
+- `p@ssword` (a → @)
+- `p4ssword` (a → 4)
+- `passw0rd` (o → 0)
+- `pa$$word` (s → $)
+- `password123` (common ending)
+- `Password` (capitalized)
+
+### Benefits
+
+- **Higher Success Rate**: Tests common password obfuscation patterns
+- **Automatic**: No manual work required
+- **Smart**: Avoids password explosion by limiting variations
+- **Transparent**: Shows original vs enhanced count in the UI
+
+### Usage Tips
+
+- **Enable by default** for better coverage
+- **Disable** if you have a very large password list (>10,000 passwords)
+- **Monitor** the enhanced count in the password list label
+- **Original passwords** are always tested first
 
 ## Password List Format
 

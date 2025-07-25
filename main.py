@@ -54,6 +54,93 @@ except ImportError:
     PYZIPPER_AVAILABLE = False
 
 
+class PasswordEnhancer:
+    """Enhances password lists by generating variations with common substitutions"""
+
+    # Common character substitutions used in passwords
+    SUBSTITUTIONS = {
+        'a': ['@', '4'],
+        'e': ['3'],
+        'i': ['1', '!'],
+        'o': ['0'],
+        's': ['$', '5'],
+        't': ['7'],
+        'l': ['1'],
+        'g': ['9'],
+        'b': ['6'],
+        'A': ['@', '4'],
+        'E': ['3'],
+        'I': ['1', '!'],
+        'O': ['0'],
+        'S': ['$', '5'],
+        'T': ['7'],
+        'L': ['1'],
+        'G': ['9'],
+        'B': ['6']
+    }
+
+    @staticmethod
+    def generate_variations(password, max_variations=10):
+        """Generate password variations using character substitutions"""
+        variations = set()
+        variations.add(password)  # Include original
+
+        # Single character substitutions
+        for i, char in enumerate(password):
+            if char in PasswordEnhancer.SUBSTITUTIONS:
+                for replacement in PasswordEnhancer.SUBSTITUTIONS[char]:
+                    new_password = password[:i] + replacement + password[i+1:]
+                    variations.add(new_password)
+                    if len(variations) >= max_variations:
+                        break
+                if len(variations) >= max_variations:
+                    break
+
+        # Common endings (years, numbers)
+        base_variations = list(variations)
+        for base_pwd in base_variations[:5]:  # Limit to avoid explosion
+            for suffix in ['123', '!', '1', '12', '2023', '2024', '01']:
+                variations.add(base_pwd + suffix)
+                if len(variations) >= max_variations:
+                    break
+            if len(variations) >= max_variations:
+                break
+
+        # Capitalize first letter variations
+        for base_pwd in list(variations)[:5]:
+            if base_pwd and base_pwd[0].islower():
+                variations.add(base_pwd.capitalize())
+            if len(variations) >= max_variations:
+                break
+
+        return list(variations)[:max_variations]
+
+    @staticmethod
+    def enhance_password_list(passwords, enhancement_factor=3):
+        """Enhance a list of passwords with variations"""
+        enhanced_passwords = []
+
+        for password in passwords:
+            # Add original password
+            enhanced_passwords.append(password)
+
+            # Add variations
+            variations = PasswordEnhancer.generate_variations(password, enhancement_factor)
+            for variation in variations:
+                if variation != password:  # Don't duplicate original
+                    enhanced_passwords.append(variation)
+
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_passwords = []
+        for pwd in enhanced_passwords:
+            if pwd not in seen:
+                seen.add(pwd)
+                unique_passwords.append(pwd)
+
+        return unique_passwords
+
+
 class PasswordCrackingWorker(QThread):
     """Worker thread for password cracking to keep UI responsive"""
 
@@ -63,10 +150,11 @@ class PasswordCrackingWorker(QThread):
     finished_unsuccessfully = Signal()  # no password found
     error_occurred = Signal(str)  # error message
 
-    def __init__(self, archive_path, password_list_path):
+    def __init__(self, archive_path, password_list_path, enhance_passwords=True):
         super().__init__()
         self.archive_path = archive_path
         self.password_list_path = password_list_path
+        self.enhance_passwords = enhance_passwords
         self.should_stop = False
 
     def run(self):
@@ -112,8 +200,18 @@ class PasswordCrackingWorker(QThread):
         """Load passwords from the password list file"""
         try:
             with open(self.password_list_path, 'r', encoding='utf-8', errors='ignore') as f:
-                passwords = [line.strip() for line in f if line.strip()]
-            return passwords
+                original_passwords = [line.strip() for line in f if line.strip()]
+
+            if not original_passwords:
+                return []
+
+            # Enhance passwords if enabled
+            if self.enhance_passwords:
+                enhanced_passwords = PasswordEnhancer.enhance_password_list(original_passwords)
+                return enhanced_passwords
+            else:
+                return original_passwords
+
         except Exception as e:
             self.error_occurred.emit(f"Could not load password list: {str(e)}")
             return []
@@ -615,6 +713,21 @@ class MainWindow(QMainWindow):
         # Show current attempt checkbox
         self.show_password_cb = QCheckBox("Show current password attempt")
         feedback_layout.addWidget(self.show_password_cb)
+
+        # Password enhancement checkbox
+        self.enhance_passwords_cb = QCheckBox("Enhance password list (generate variations with @, 3, 1, etc.)")
+        self.enhance_passwords_cb.setChecked(True)  # Default enabled
+        self.enhance_passwords_cb.setToolTip(
+            "Generate password variations using common substitutions:\n"
+            "• a/A → @, 4\n"
+            "• e/E → 3\n"
+            "• i/I → 1, !\n"
+            "• o/O → 0\n"
+            "• s/S → $, 5\n"
+            "• Add common endings (123, !, 2024, etc.)\n"
+            "• Capitalize first letter variations"
+        )
+        feedback_layout.addWidget(self.enhance_passwords_cb)
         
         # Current password display
         self.current_password_label = QLabel("Current attempt: (not started)")
@@ -659,6 +772,7 @@ class MainWindow(QMainWindow):
         self.start_btn.clicked.connect(self.start_cracking)
         self.stop_btn.clicked.connect(self.stop_cracking)
         self.show_password_cb.toggled.connect(self.toggle_password_display)
+        self.enhance_passwords_cb.toggled.connect(self.update_password_count_display)
         
     def browse_archive_file(self):
         """Open file dialog to select archive file"""
@@ -723,19 +837,29 @@ class MainWindow(QMainWindow):
             try:
                 # Try to read the file and count passwords
                 with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                    passwords = [line.strip() for line in f if line.strip()]
-                    password_count = len(passwords)
+                    original_passwords = [line.strip() for line in f if line.strip()]
+                    original_count = len(original_passwords)
 
-                if password_count == 0:
+                if original_count == 0:
                     QMessageBox.warning(self, "File Error", "Password file appears to be empty.")
                     return
 
+                # Calculate enhanced count if enhancement is enabled
+                if self.enhance_passwords_cb.isChecked():
+                    enhanced_passwords = PasswordEnhancer.enhance_password_list(original_passwords)
+                    enhanced_count = len(enhanced_passwords)
+                    count_text = f"{original_count:,} passwords → {enhanced_count:,} enhanced"
+                    status_text = f"Password list selected: {original_count:,} original + {enhanced_count - original_count:,} variations = {enhanced_count:,} total"
+                else:
+                    count_text = f"{original_count:,} passwords"
+                    status_text = f"Password list selected: {original_count:,} passwords loaded"
+
                 self.password_list_path = file_path
                 filename = Path(file_path).name
-                self.password_label.setText(f"{filename} ({password_count:,} passwords)")
+                self.password_label.setText(f"{filename} ({count_text})")
                 self.clear_password_btn.setEnabled(True)
                 self.check_ready_state()
-                self.statusBar().showMessage(f"Password list selected: {password_count:,} passwords loaded")
+                self.statusBar().showMessage(status_text)
                 # Update theme-aware styling
                 self.update_themed_elements(self.get_current_theme_colors())
 
@@ -801,7 +925,8 @@ class MainWindow(QMainWindow):
         self.update_themed_elements(self.get_current_theme_colors())
 
         # Create and start worker thread
-        self.worker_thread = PasswordCrackingWorker(self.archive_path, self.password_list_path)
+        enhance_passwords = self.enhance_passwords_cb.isChecked()
+        self.worker_thread = PasswordCrackingWorker(self.archive_path, self.password_list_path, enhance_passwords)
         self.worker_thread.progress_updated.connect(self.update_progress)
         self.worker_thread.password_found.connect(self.password_found)
         self.worker_thread.finished_unsuccessfully.connect(self.password_not_found)
@@ -954,6 +1079,35 @@ class MainWindow(QMainWindow):
         msg.setDefaultButton(QMessageBox.No)
 
         return msg.exec() == QMessageBox.Yes
+
+    def update_password_count_display(self):
+        """Update the password count display when enhancement setting changes"""
+        if not self.password_list_path:
+            return
+
+        try:
+            # Re-read the password file to update count display
+            with open(self.password_list_path, 'r', encoding='utf-8', errors='ignore') as f:
+                original_passwords = [line.strip() for line in f if line.strip()]
+                original_count = len(original_passwords)
+
+            # Calculate enhanced count if enhancement is enabled
+            if self.enhance_passwords_cb.isChecked():
+                enhanced_passwords = PasswordEnhancer.enhance_password_list(original_passwords)
+                enhanced_count = len(enhanced_passwords)
+                count_text = f"{original_count:,} passwords → {enhanced_count:,} enhanced"
+                status_text = f"Enhancement enabled: {original_count:,} original + {enhanced_count - original_count:,} variations = {enhanced_count:,} total"
+            else:
+                count_text = f"{original_count:,} passwords"
+                status_text = f"Enhancement disabled: {original_count:,} passwords"
+
+            filename = Path(self.password_list_path).name
+            self.password_label.setText(f"{filename} ({count_text})")
+            self.statusBar().showMessage(status_text)
+
+        except Exception as e:
+            # If there's an error, just show a generic message
+            self.statusBar().showMessage(f"Error updating password count: {str(e)}")
 
     def toggle_password_display(self, checked):
         """Toggle password display visibility"""
