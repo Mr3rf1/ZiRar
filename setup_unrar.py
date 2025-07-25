@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-UnRAR Setup Helper for Zirar
+UnRAR Setup Helper for ZiRar
 Helps users set up UnRAR executable for RAR archive support
 """
 
@@ -178,9 +178,9 @@ def setup_path_instructions():
         print(f"   2. Reload shell: source ~/.zshrc")
         print(f"   3. Or copy unrar to /usr/local/bin/")
 
-def test_with_zirar():
-    """Test UnRAR integration with Zirar"""
-    print(f"\n🔗 Testing Integration with Zirar:")
+def test_with_ZiRar():
+    """Test UnRAR integration with ZiRar"""
+    print(f"\n🔗 Testing Integration with ZiRar:")
     
     try:
         # Try to import rarfile to test integration
@@ -213,7 +213,7 @@ def test_with_zirar():
 
 def main():
     """Main setup function"""
-    print(f"🔐 Zirar UnRAR Setup Helper")
+    print(f"🔐 ZiRar UnRAR Setup Helper")
     print(f"=" * 50)
     
     # Detect system
@@ -227,10 +227,10 @@ def main():
         if test_unrar_functionality(unrar_path):
             print(f"\n✅ UnRAR is properly installed and working!")
             
-            # Test integration with Zirar
-            if test_with_zirar():
+            # Test integration with ZiRar
+            if test_with_ZiRar():
                 print(f"\n🎉 Setup Complete!")
-                print(f"   UnRAR is ready to use with Zirar")
+                print(f"   UnRAR is ready to use with ZiRar")
                 print(f"   You can now process RAR archives in the application")
                 return True
             else:
@@ -257,7 +257,7 @@ def main():
     print(f"\n🔄 After Installation:")
     print(f"   1. Restart your terminal/command prompt")
     print(f"   2. Run this script again to verify installation")
-    print(f"   3. Launch Zirar and test RAR file support")
+    print(f"   3. Launch ZiRar and test RAR file support")
     
     print(f"\n💡 Troubleshooting:")
     print(f"   • Make sure UnRAR is in your system PATH")

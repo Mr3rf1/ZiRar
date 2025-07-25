@@ -1,4 +1,4 @@
-# 🔐 Zirar - Archive Password Recovery Tool
+# 🔐 ZiRar - Archive Password Recovery Tool
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
 [![PySide6](https://img.shields.io/badge/PySide6-6.5+-green.svg)](https://pypi.org/project/PySide6/)
@@ -81,8 +81,8 @@ rarfile>=4.0        # RAR archive support
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/Mr3rf1/zirar.git
-cd zirar
+git clone https://github.com/Mr3rf1/ZiRar.git
+cd ZiRar
 ```
 
 ### 2. Install Dependencies
@@ -216,8 +216,8 @@ See [LICENSE](LICENSE) file for complete terms.
 
 ## 📞 Support & Contact
 
-- **Issues**: [GitHub Issues](https://github.com/Mr3rf1/zirar/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Mr3rf1/zirar/discussions)
+- **Issues**: [GitHub Issues](https://github.com/Mr3rf1/ZiRar/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Mr3rf1/ZiRar/discussions)
 - **Security**: Report security issues responsibly
 
 ## 🔗 Related Resources

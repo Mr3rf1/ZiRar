@@ -1,4 +1,4 @@
-# Zirar Usage Guide
+# ZiRar Usage Guide
 
 ## Installation
 

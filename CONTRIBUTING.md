@@ -1,6 +1,6 @@
-# Contributing to Zirar
+# Contributing to ZiRar
 
-Thank you for your interest in contributing to Zirar! This project is dedicated to educational purposes and ethical security research. We welcome contributions that enhance the educational value and maintain the ethical standards of this project.
+Thank you for your interest in contributing to ZiRar! This project is dedicated to educational purposes and ethical security research. We welcome contributions that enhance the educational value and maintain the ethical standards of this project.
 
 ## 🎓 Educational Mission
 
@@ -58,8 +58,8 @@ This project exists to:
 
 ```bash
 # Fork and clone the repository
-git clone https://github.com/Mr3rf1/zirar.git
-cd zirar
+git clone https://github.com/Mr3rf1/ZiRar.git
+cd ZiRar
 
 # Create a virtual environment
 python -m venv venv
@@ -209,7 +209,7 @@ Contributors who make significant educational contributions will be:
 - **Security**: Contact maintainers privately
 - **General**: Check existing documentation first
 
-Thank you for helping make Zirar a valuable educational resource while maintaining the highest ethical standards!
+Thank you for helping make ZiRar a valuable educational resource while maintaining the highest ethical standards!
 
 ---
 

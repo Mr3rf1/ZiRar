@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Zirar - Archive Password Cracker
+ZiRar - Archive Password Cracker
 A secure PySide6 desktop application for testing passwords against password-protected archives.
 """
 
@@ -568,7 +568,7 @@ class MainWindow(QMainWindow):
         self.is_cracking = False
         self.current_theme = 'light'  # Default to light theme
 
-        self.setWindowTitle("Zirar - Archive Password Cracker")
+        self.setWindowTitle("ZiRar - Archive Password Cracker")
         self.setMinimumSize(650, 700)  # Increased minimum height to ensure all content is visible
         self.resize(650, 750)
 
@@ -1283,7 +1283,7 @@ class MainWindow(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
-    app.setApplicationName("Zirar")
+    app.setApplicationName("ZiRar")
     app.setApplicationVersion("1.0")
     
     window = MainWindow()

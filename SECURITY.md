@@ -2,12 +2,12 @@
 
 ## 🛡️ Our Commitment to Security
 
-The Zirar project is committed to maintaining the highest security standards while promoting ethical use of security tools. We take security vulnerabilities seriously and appreciate responsible disclosure from the security community.
+The ZiRar project is committed to maintaining the highest security standards while promoting ethical use of security tools. We take security vulnerabilities seriously and appreciate responsible disclosure from the security community.
 
 ## 🎯 Scope
 
 This security policy applies to:
-- The main Zirar application (`main.py`)
+- The main ZiRar application (`main.py`)
 - All supporting modules and dependencies
 - Documentation and educational materials
 - Build and deployment processes
@@ -26,8 +26,8 @@ We follow industry-standard responsible disclosure practices:
 ### How to Report
 
 **🔒 For Security Vulnerabilities:**
-- **Email**: [Create a private GitHub security advisory](https://github.com/Mr3rf1/zirar/security/advisories/new)
-- **Subject**: "Security Vulnerability in Zirar: [Brief Description]"
+- **Email**: [Create a private GitHub security advisory](https://github.com/Mr3rf1/ZiRar/security/advisories/new)
+- **Subject**: "Security Vulnerability in ZiRar: [Brief Description]"
 - **Encryption**: Use our PGP key for sensitive communications (if available)
 
 **📋 Include in Your Report:**
@@ -155,7 +155,7 @@ Before submitting code, ensure:
 
 ## 🏆 Security Hall of Fame
 
-We recognize security researchers who help improve Zirar's security:
+We recognize security researchers who help improve ZiRar's security:
 
 *No security issues have been reported yet. Be the first to help us improve!*
 

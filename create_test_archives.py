@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test Archive Creator for Zirar
+Test Archive Creator for ZiRar
 Creates password-protected ZIP and RAR archives for testing the application
 """
 
@@ -34,14 +34,14 @@ def create_test_content():
     test_dir.mkdir(exist_ok=True)
     
     # Sample text document
-    doc_content = f"""# Test Document for Zirar
+    doc_content = f"""# Test Document for ZiRar
 
-This is a sample document created for testing the Zirar archive password recovery tool.
+This is a sample document created for testing the ZiRar archive password recovery tool.
 
 ## Document Information
 - Created: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 - Purpose: Educational testing of password-protected archives
-- Tool: Zirar Archive Password Recovery Tool
+- Tool: ZiRar Archive Password Recovery Tool
 
 ## Sample Content
 This document contains various types of text to ensure proper archive creation and extraction:
@@ -54,7 +54,7 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 ### Technical Information
 - Archive Format: ZIP/RAR
 - Encryption: Password-protected
-- Testing Tool: Zirar
+- Testing Tool: ZiRar
 - Educational Purpose: Learning cybersecurity concepts
 
 ### Security Notes
@@ -91,11 +91,11 @@ Henry Chen,33,Singapore,Singapore,System Administrator
         f.write(csv_content)
     
     # Sample configuration file
-    config_content = """# Zirar Test Configuration
+    config_content = """# ZiRar Test Configuration
 # This is a sample configuration file for testing
 
 [application]
-name = "Zirar Test Suite"
+name = "ZiRar Test Suite"
 version = "1.0.0"
 debug = true
 
@@ -112,13 +112,13 @@ mock_services = false
 [database]
 host = "localhost"
 port = 5432
-name = "zirar_test"
+name = "ZiRar_test"
 user = "test_user"
 # Note: This is test data only - not real credentials
 
 [logging]
 level = "INFO"
-file = "zirar_test.log"
+file = "ZiRar_test.log"
 max_size = "10MB"
 backup_count = 5
 """
@@ -129,7 +129,7 @@ backup_count = 5
     # Sample JSON data
     json_content = """{
   "test_suite": {
-    "name": "Zirar Archive Testing",
+    "name": "ZiRar Archive Testing",
     "version": "1.0",
     "description": "Test data for educational password recovery tool",
     "created": "2024-01-01",
@@ -301,7 +301,7 @@ def create_password_list(archives):
         "secret", "hello", "welcome", "master", "dragon",
         "monkey", "letmein", "trustno1", "sunshine", "shadow",
         
-        # Enhanced variations (what Zirar would generate)
+        # Enhanced variations (what ZiRar would generate)
         "p@ssword", "p4ssword", "passw0rd", "pa$$word",
         "@dmin", "4dmin", "s3cret", "$ecret", "secr3t",
         "t3st", "te$t", "h3llo", "hell0",
@@ -348,15 +348,15 @@ def create_readme():
     """Create README for test files"""
     print("\n📚 Creating test documentation...")
     
-    readme_content = """# Zirar Test Archives
+    readme_content = """# ZiRar Test Archives
 
-This directory contains password-protected archives for testing the Zirar application.
+This directory contains password-protected archives for testing the ZiRar application.
 
 ## 🎓 Educational Purpose
 
 These test files are created for:
 - Learning how password-protected archives work
-- Testing the Zirar password recovery tool
+- Testing the ZiRar password recovery tool
 - Understanding different encryption methods
 - Demonstrating password enhancement features
 
@@ -379,12 +379,12 @@ These test files are created for:
 
 - `test_passwords.txt` - Contains all test passwords plus common variations
 - Archive passwords are included in the first few entries
-- Enhanced variations demonstrate Zirar's password enhancement feature
+- Enhanced variations demonstrate ZiRar's password enhancement feature
 
 ## 🧪 Testing Instructions
 
 ### Basic Testing
-1. Launch Zirar: `python main.py`
+1. Launch ZiRar: `python main.py`
 2. Select a test archive (e.g., `test_zip_simple.zip`)
 3. Select `test_passwords.txt` as the password list
 4. Enable "Enhance password list" option
@@ -396,7 +396,7 @@ These test files are created for:
 #### Password Enhancement
 - Test with `test_zip_enhanced.zip` (password: `p@ssw0rd`)
 - The original password list contains `password`
-- Zirar should enhance it to `p@ssw0rd` and find the correct password
+- ZiRar should enhance it to `p@ssw0rd` and find the correct password
 
 #### Multi-threading
 - Test with different worker thread counts
@@ -468,9 +468,9 @@ def cleanup_temp_files(test_dir):
 
 def main():
     """Main function to create all test archives"""
-    print("🔐 Zirar Test Archive Creator")
+    print("🔐 ZiRar Test Archive Creator")
     print("=" * 50)
-    print("Creating password-protected archives for testing the Zirar application")
+    print("Creating password-protected archives for testing the ZiRar application")
     print("This tool is for educational and testing purposes only.\n")
     
     try:
@@ -521,7 +521,7 @@ def main():
         print(f"   • TEST_README.md - Testing instructions")
         
         print(f"\n🧪 Next Steps:")
-        print(f"   1. Run Zirar: python main.py")
+        print(f"   1. Run ZiRar: python main.py")
         print(f"   2. Select a test archive")
         print(f"   3. Select {password_file}")
         print(f"   4. Start password testing")
