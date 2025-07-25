@@ -165,3 +165,73 @@ Capitalization: First letter variants
 | 5       | 3,170                | 5.0x    | Small lists     |
 | 10      | 5,968                | 9.4x    | Medium lists    |
 | 20      | 10,808               | 17.0x   | Large lists     |
+
+## 🛡️ Security Considerations
+
+### Password List Security
+- Store password lists securely
+- Delete sensitive files after use
+- Use encrypted storage for password lists
+- Avoid sharing password lists
+
+### System Security
+- Run with minimal privileges
+- Monitor system resource usage
+- Keep software updated
+- Use in isolated environments for testing
+
+## 🤝 Contributing
+
+We welcome contributions that enhance the educational value of this project:
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/educational-enhancement`)
+3. **Commit** your changes (`git commit -am 'Add educational feature'`)
+4. **Push** to the branch (`git push origin feature/educational-enhancement`)
+5. **Create** a Pull Request
+
+### Contribution Guidelines
+- Maintain educational focus
+- Include proper documentation
+- Add appropriate tests
+- Follow ethical coding practices
+- Respect the project's educational mission
+
+## 📄 License
+
+This project is released under an **Educational Use License**:
+
+- ✅ **Permitted**: Educational use, learning, authorized testing
+- ❌ **Prohibited**: Commercial use, unauthorized access, illegal activities
+- 📚 **Purpose**: Educational and research purposes only
+
+See [LICENSE](LICENSE) file for complete terms.
+
+## 🙏 Acknowledgments
+
+- **PySide6 Team**: For the excellent GUI framework
+- **Python Community**: For the robust ecosystem
+- **Security Researchers**: For responsible disclosure practices
+- **Educational Institutions**: For promoting ethical security education
+
+## 📞 Support & Contact
+
+- **Issues**: [GitHub Issues](https://github.com/yourusername/zirar/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/zirar/discussions)
+- **Security**: Report security issues responsibly
+
+## 🔗 Related Resources
+
+### Educational Materials
+- [NIST Password Guidelines](https://pages.nist.gov/800-63-3/)
+- [OWASP Password Security](https://owasp.org/www-community/controls/Password)
+- [Cybersecurity Education Resources](https://www.cybersecurity.gov/)
+
+### Ethical Hacking Resources
+- [EC-Council Code of Ethics](https://www.eccouncil.org/code-of-ethics/)
+- [SANS Ethics Guidelines](https://www.sans.org/about/ethics/)
+- [Responsible Disclosure Guidelines](https://cheatsheetseries.owasp.org/cheatsheets/Vulnerability_Disclosure_Cheat_Sheet.html)
+
+---
+
+**Remember: With great power comes great responsibility. Use this tool ethically and legally.**
